@@ -1,0 +1,15 @@
+# Local editor configuration
+.vscode/
+
+# Python-generated files
+__pycache__/
+.ipynb_checkpoints/
+.venv/
+.env
+
+# Large datasets and local databases
+*.csv
+*.xlsx
+*.zip
+*.dump
+*.backup
