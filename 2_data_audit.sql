@@ -1,79 +1,113 @@
-/*orders*/
+-- ============================================================================
+-- BENGALURU QUICK-COMMERCE ANALYTICS
+-- File: 2_data_audit.sql
+-- Purpose: Data-quality investigation, cleaned tables, and relational keys
+-- Database: PostgreSQL
+-- ============================================================================
+--
+-- Workflow:
+--   1. Remove exact duplicates while preserving original source tables.
+--   2. Audit missing values and numerical/business validity.
+--   3. Standardize store names and verify cross-table relationships.
+--   4. Verify record granularity and enforce primary/foreign keys.
+--
+-- NOTE: This script documents the steps actually carried out during setup.
+--       CREATE TABLE and ADD CONSTRAINT statements are not idempotent.
+--       Do not rerun the entire file against an already-prepared database.
+--       Execute only the relevant SELECT when inspecting existing tables.
+-- ============================================================================
 
+-- ============================================================================
+-- SECTION 1 — DUPLICATE DETECTION AND CLEANING
+-- Inspect raw transactions, remove exact duplicate rows into separate clean tables, and verify unique identifiers.
+-- ============================================================================
+-- Inspect raw orders. CAUTION: SELECT * returns the entire table.
 SELECT * FROM orders;
 
-
-
+-- Compare total raw rows against distinct order IDs.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT order_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT order_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows
 FROM orders;
+
+-- For repeated order IDs, count full-row versions using PostgreSQL JSONB.
 SELECT
     COUNT(order_id) AS num_of_duplicates,
     order_id,
     COUNT(DISTINCT TO_JSONB(orders)) AS distinct_versions
-FROM orders 
+FROM orders
 GROUP BY order_id
-HAVING COUNT(order_id) >1
+HAVING COUNT(order_id) > 1
 ORDER BY order_id;
 
+-- Create a deduplicated orders table, leaving raw data unchanged.
 CREATE TABLE orders_clean AS
 SELECT DISTINCT *
 FROM orders;
 
+-- Confirm that the cleaned orders table has unique order IDs.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT order_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT order_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT order_id) AS duplicate_rows
 FROM orders_clean;
 
-/*order_items*/
-
+-- Inspect raw order items. CAUTION: SELECT * returns the entire table.
 SELECT * FROM order_items;
 
+-- Count repeated order-item IDs in the raw table.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT order_item_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT order_item_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT order_item_id) AS duplicate_rows
 FROM order_items;
 
+-- Preview the exact-distinct version of all raw order-item rows.
 SELECT DISTINCT *
 FROM order_items;
 
+-- Create a cleaned order-item table by removing identical rows.
 CREATE TABLE order_items_clean AS
 SELECT DISTINCT *
 FROM order_items;
 
+-- Verify row counts and uniqueness after order-item deduplication.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT order_item_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT order_item_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT order_item_id) AS duplicate_rows
 FROM order_items_clean;
 
-/*inventory*/
+-- Preview only 10 inventory rows to avoid returning millions of records.
+SELECT * FROM inventory
+LIMIT 10;
 
-SELECT * FROM inventory LIMIT 10;
-
+-- Check raw inventory count and unique inventory record IDs.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT inventory_record_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT inventory_record_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT inventory_record_id) AS duplicate_rows
 FROM inventory;
 
-
+-- Create a deduplicated inventory table (potentially resource-intensive).
 CREATE TABLE inventory_clean AS
 SELECT DISTINCT *
 FROM inventory;
 
+-- Verify inventory counts and uniqueness after deduplication.
 SELECT
     COUNT(*) AS number_of_rows,
     COUNT(DISTINCT inventory_record_id) AS unique_rows,
-    COUNT(*)-COUNT(DISTINCT inventory_record_id) AS duplicate_rows
+    COUNT(*) - COUNT(DISTINCT inventory_record_id) AS duplicate_rows
 FROM inventory_clean;
 
-/*Remaining tables together*/
 
+-- ============================================================================
+-- SECTION 2 — DUPLICATE AUDIT OF REFERENCE AND OTHER TABLES
+-- Compare record counts against distinct identifiers, using the date–zone pair for external factors.
+-- ============================================================================
+-- Audit duplicate keys across the remaining eight source tables.
 SELECT
     'customers' AS table_name,
     COUNT(*) AS total_rows,
@@ -140,12 +174,16 @@ UNION ALL
 SELECT
     'external_factors',
     COUNT(*),
-    COUNT(DISTINCT (date,zone)),
-    COUNT(*) - COUNT(DISTINCT (date,zone))
+    COUNT(DISTINCT (date, zone)),
+    COUNT(*) - COUNT(DISTINCT (date, zone))
 FROM external_factors;
 
-/*Missing value check*/
 
+-- ============================================================================
+-- SECTION 3 — MISSING-VALUE AUDIT
+-- Check key business fields for NULL values and investigate missing timestamps before deciding how to use affected rows.
+-- ============================================================================
+-- Check essential order identifiers and order timestamps for NULL values.
 SELECT
     COUNT(*) FILTER (WHERE order_id IS NULL) AS missing_order_ids,
     COUNT(*) FILTER (WHERE customer_id IS NULL) AS missing_customer_ids,
@@ -153,6 +191,7 @@ SELECT
     COUNT(*) FILTER (WHERE order_timestamp IS NULL) AS missing_order_timestamps
 FROM orders_clean;
 
+-- Break down orders missing timestamps by order status.
 SELECT 
     COUNT(order_status),
     order_status
@@ -160,6 +199,7 @@ FROM orders_clean
 WHERE order_timestamp IS NULL
 GROUP BY order_status;
 
+-- Check order-status and financial measures for NULL values.
 SELECT
     COUNT(*) FILTER (WHERE order_status IS NULL) AS missing_order_status,
     COUNT(*) FILTER (WHERE gross_merchandise_value_inr IS NULL) AS missing_gmv,
@@ -167,6 +207,7 @@ SELECT
     COUNT(*) FILTER (WHERE gross_profit_inr IS NULL) AS missing_gross_profit
 FROM orders_clean;
 
+-- Check essential identifiers and quantities for order items.
 SELECT
     COUNT(*) FILTER (WHERE order_item_id IS NULL) AS missing_order_item_ids,
     COUNT(*) FILTER (WHERE order_id IS NULL) AS missing_order_ids,
@@ -174,7 +215,7 @@ SELECT
     COUNT(*) FILTER (WHERE quantity IS NULL) AS missing_quantities
 FROM order_items_clean;
 
-
+-- Check delivery identifiers, rider assignment, and timing fields.
 SELECT
     COUNT(*) FILTER (WHERE delivery_id IS NULL) AS missing_delivery_ids,
     COUNT(*) FILTER (WHERE order_id IS NULL) AS missing_order_ids,
@@ -184,10 +225,11 @@ SELECT
     COUNT(*) FILTER (WHERE actual_delivery_minutes IS NULL) AS missing_delivery_minutes
 FROM deliveries;
 
+-- Inspect delivery records without a completion timestamp.
+SELECT * FROM deliveries
+WHERE delivered_timestamp IS NULL;
 
-SELECT * FROM deliveries WHERE delivered_timestamp IS NULL;
-
-
+-- Identify the order statuses associated with missing delivery timestamps.
 SELECT
     o.order_status,
     COUNT(*) AS missing_timestamps
@@ -198,6 +240,7 @@ WHERE d.delivered_timestamp IS NULL
 GROUP BY o.order_status
 ORDER BY missing_timestamps DESC;
 
+-- Check inventory identifiers, observation dates, stock, and wastage cost.
 SELECT
     COUNT(*) FILTER (WHERE inventory_record_id IS NULL) AS missing_inventory_ids,
     COUNT(*) FILTER (WHERE date IS NULL) AS missing_dates,
@@ -207,12 +250,14 @@ SELECT
     COUNT(*) FILTER (WHERE wastage_cost_inr IS NULL) AS missing_wastage_cost
 FROM inventory_clean;
 
+-- Check selected customer attributes for NULL values.
 SELECT
     COUNT(*) FILTER (WHERE customer_id IS NULL) AS missing_customer_ids,
     COUNT(*) FILTER (WHERE signup_date IS NULL) AS missing_signup_dates,
     COUNT(*) FILTER (WHERE customer_segment IS NULL) AS missing_customer_segments
 FROM customers;
 
+-- Check selected product attributes and monetary fields.
 SELECT
     COUNT(*) FILTER (WHERE product_id IS NULL) AS missing_product_ids,
     COUNT(*) FILTER (WHERE category IS NULL) AS missing_categories,
@@ -220,6 +265,7 @@ SELECT
     COUNT(*) FILTER (WHERE unit_cost_inr IS NULL) AS missing_unit_costs
 FROM products;
 
+-- Audit essential columns in the five remaining tables in one result set.
 SELECT
     'stores' AS table_name,
     COUNT(*) FILTER (WHERE store_id IS NULL)
@@ -266,25 +312,31 @@ SELECT
 FROM external_factors;
 
 
-
-/*DATA CONSISTENCY check*/
-
+-- ============================================================================
+-- SECTION 4 — NUMERICAL VALIDITY AND BUSINESS RULES
+-- Check values for invalid ranges. Zero-minute promises for cancelled orders require business context.
+-- ============================================================================
+-- Check order financial values, distances, and promised delivery times.
 SELECT 
-    COUNT(*) FILTER(WHERE gross_merchandise_value_inr < 0) AS negative_gmv,
-    COUNT(*) FILTER(WHERE net_revenue_inr < 0) AS negative_nr,
-    COUNT(*) FILTER(WHERE delivery_distance_km < 0) AS negative_dd,
-    COUNT(*) FILTER(WHERE promised_delivery_minutes <= 0) AS zero_or_below_pdm
+    COUNT(*) FILTER (WHERE gross_merchandise_value_inr < 0) AS negative_gmv,
+    COUNT(*) FILTER (WHERE net_revenue_inr < 0) AS negative_nr,
+    COUNT(*) FILTER (WHERE delivery_distance_km < 0) AS negative_dd,
+    COUNT(*) FILTER (WHERE promised_delivery_minutes <= 0) AS zero_or_below_pdm
 FROM orders_clean;
 
+-- Count orders with a zero-minute delivery promise.
 SELECT 
-    COUNT(*) FILTER(WHERE promised_delivery_minutes = 0) AS zero_or_below_pdm
+    COUNT(*) FILTER (WHERE promised_delivery_minutes = 0) AS zero_or_below_pdm
 FROM orders_clean;
 
+-- Check whether any completed orders have a zero-minute promise.
 SELECT 
     COUNT(*)
 FROM orders_clean
-WHERE promised_delivery_minutes = 0 AND order_status = 'Completed';
+WHERE promised_delivery_minutes = 0
+  AND order_status = 'Completed';
 
+-- Classify non-positive delivery promises by status and value.
 SELECT
     order_status,
     promised_delivery_minutes,
@@ -294,7 +346,7 @@ WHERE promised_delivery_minutes <= 0
 GROUP BY order_status, promised_delivery_minutes
 ORDER BY order_status, promised_delivery_minutes;
 
-
+-- Validate requested, fulfilled, and priced order-item quantities.
 SELECT
     COUNT(*) FILTER (WHERE requested_quantity <= 0) AS invalid_requested_quantity,
     COUNT(*) FILTER (WHERE quantity < 0) AS negative_quantity,
@@ -302,6 +354,7 @@ SELECT
     COUNT(*) FILTER (WHERE unit_price_inr < 0) AS negative_unit_price
 FROM order_items_clean;
 
+-- Validate inventory unit counts and stockout minutes (max 1,440/day).
 SELECT
     COUNT(*) FILTER (WHERE opening_stock_units < 0) AS negative_opening_stock,
     COUNT(*) FILTER (WHERE closing_stock_units < 0) AS negative_closing_stock,
@@ -309,6 +362,7 @@ SELECT
     COUNT(*) FILTER (WHERE stockout_minutes < 0 OR stockout_minutes > 1440) AS invalid_stockout_minutes
 FROM inventory_clean;
 
+-- Validate positive delivery durations and chronological timestamps.
 SELECT
     COUNT(*) FILTER (WHERE actual_delivery_minutes <= 0) AS invalid_delivery_duration,
     COUNT(*) FILTER (WHERE assignment_wait_minutes < 0) AS negative_assignment_wait,
@@ -316,17 +370,20 @@ SELECT
     COUNT(*) FILTER (WHERE delivered_timestamp < accepted_timestamp) AS invalid_timestamp_order
 FROM deliveries;
 
+-- Check product prices, costs, and shelf-life values.
 SELECT
     COUNT(*) FILTER (WHERE list_price_inr <= 0) AS invalid_list_price,
     COUNT(*) FILTER (WHERE unit_cost_inr < 0) AS negative_unit_cost,
     COUNT(*) FILTER (WHERE shelf_life_days <= 0) AS invalid_shelf_life
 FROM products;
 
+-- Check promotion date order and nonnegative discount values.
 SELECT
     COUNT(*) FILTER (WHERE end_date < start_date) AS invalid_promotion_dates,
     COUNT(*) FILTER (WHERE discount_value < 0) AS negative_discount
 FROM promotions;
 
+-- Check rainfall, traffic, and implausible temperature values.
 SELECT
     COUNT(*) FILTER (WHERE rainfall_mm < 0) AS negative_rainfall,
     COUNT(*) FILTER (WHERE traffic_index < 0) AS negative_traffic_index,
@@ -335,6 +392,12 @@ SELECT
     ) AS invalid_temperature
 FROM external_factors;
 
+
+-- ============================================================================
+-- SECTION 5 — STORE-NAME STANDARDISATION
+-- Inspect case and whitespace inconsistencies, create a corrected stores table, and verify the output.
+-- ============================================================================
+-- Compare raw store names with trimmed and title-cased alternatives.
 SELECT
     store_id,
     store_name,
@@ -343,6 +406,7 @@ SELECT
 FROM stores
 ORDER BY store_id;
 
+-- Correct only S001 and S005 while retaining proper "JP Nagar" casing.
 CREATE TABLE stores_clean AS
 SELECT
     store_id,
@@ -362,13 +426,20 @@ SELECT
     status
 FROM stores;
 
+-- Display the standardized store names in ID order.
 SELECT
     store_id,
     store_name,
-    row_number() OVER(ORDER BY store_id) AS store_number
+    ROW_NUMBER() OVER (ORDER BY store_id) AS store_number
 FROM stores_clean
 ORDER BY store_id;
 
+
+-- ============================================================================
+-- SECTION 6 — REFERENTIAL INTEGRITY AUDIT
+-- Identify unmatched foreign-key values with LEFT JOIN, before adding database constraints.
+-- ============================================================================
+-- Check orders for nonexistent customer references.
 SELECT
     COUNT(*) AS invalid_customer_references
 FROM orders_clean o
@@ -376,6 +447,7 @@ LEFT JOIN customers c
     ON o.customer_id = c.customer_id
 WHERE c.customer_id IS NULL;
 
+-- Check orders for nonexistent store references.
 SELECT
     COUNT(*) AS invalid_store_references
 FROM orders_clean o
@@ -383,8 +455,7 @@ LEFT JOIN stores_clean s
     ON o.store_id = s.store_id
 WHERE s.store_id IS NULL;
 
-
--- 1. Order items referencing nonexistent orders
+-- Check order items against orders/products and deliveries against orders/riders.
 SELECT
     'order_items → orders' AS relationship,
     COUNT(*) AS invalid_references
@@ -395,7 +466,6 @@ WHERE o.order_id IS NULL
 
 UNION ALL
 
--- 2. Order items referencing nonexistent products
 SELECT
     'order_items → products',
     COUNT(*)
@@ -406,7 +476,6 @@ WHERE p.product_id IS NULL
 
 UNION ALL
 
--- 3. Deliveries referencing nonexistent orders
 SELECT
     'deliveries → orders',
     COUNT(*)
@@ -417,7 +486,6 @@ WHERE o.order_id IS NULL
 
 UNION ALL
 
--- 4. Deliveries referencing nonexistent riders
 SELECT
     'deliveries → riders',
     COUNT(*)
@@ -425,9 +493,8 @@ FROM deliveries d
 LEFT JOIN riders r
     ON d.rider_id = r.rider_id
 WHERE r.rider_id IS NULL;
-/*-----*/
 
--- 1. Inventory → Stores
+-- Check inventory and promotion exposure references, plus non-NULL order promos.
 SELECT
     'inventory → stores' AS relationship,
     COUNT(*) AS invalid_references
@@ -438,7 +505,6 @@ WHERE s.store_id IS NULL
 
 UNION ALL
 
--- 2. Inventory → Products
 SELECT
     'inventory → products',
     COUNT(*)
@@ -449,7 +515,6 @@ WHERE p.product_id IS NULL
 
 UNION ALL
 
--- 3. Promotion Exposures → Promotions
 SELECT
     'promotion_exposures → promotions',
     COUNT(*)
@@ -460,7 +525,6 @@ WHERE p.promo_id IS NULL
 
 UNION ALL
 
--- 4. Promotion Exposures → Customers
 SELECT
     'promotion_exposures → customers',
     COUNT(*)
@@ -471,7 +535,6 @@ WHERE c.customer_id IS NULL
 
 UNION ALL
 
--- 5. Orders → Promotions
 SELECT
     'orders → promotions',
     COUNT(*)
@@ -481,7 +544,13 @@ LEFT JOIN promotions p
 WHERE p.promo_id IS NULL
   AND o.promo_id IS NOT NULL;
 
-  SELECT
+
+-- ============================================================================
+-- SECTION 7 — VERIFY FACT-TABLE GRAIN
+-- Check that deliveries are one row per order and inventory has one observation per store, product, and day.
+-- ============================================================================
+-- Find orders with more than one delivery record.
+SELECT
     order_id,
     COUNT(*) AS delivery_count
 FROM deliveries
@@ -490,6 +559,7 @@ HAVING COUNT(*) > 1
 ORDER BY delivery_count DESC
 LIMIT 10;
 
+-- Find repeated date–store–product inventory combinations.
 SELECT
     date,
     store_id,
@@ -501,10 +571,17 @@ HAVING COUNT(*) > 1
 ORDER BY record_count DESC
 LIMIT 10;
 
+
+-- ============================================================================
+-- SECTION 8 — DEFINE AND VERIFY PRIMARY KEYS
+-- Enforce unique, non-NULL identifiers, including a composite key for external_factors.
+-- ============================================================================
+-- Add the previously validated orders primary key.
 ALTER TABLE orders_clean
 ADD CONSTRAINT pk_orders_clean
 PRIMARY KEY (order_id);
 
+-- Verify the orders primary-key constraint was created.
 SELECT
     constraint_name,
     constraint_type
@@ -512,57 +589,48 @@ FROM information_schema.table_constraints
 WHERE table_name = 'orders_clean'
   AND constraint_type = 'PRIMARY KEY';
 
--- 1. Order Items
+-- Add the remaining ten primary keys.
 ALTER TABLE order_items_clean
 ADD CONSTRAINT pk_order_items_clean
 PRIMARY KEY (order_item_id);
 
--- 2. Inventory
 ALTER TABLE inventory_clean
 ADD CONSTRAINT pk_inventory_clean
 PRIMARY KEY (inventory_record_id);
 
--- 3. Deliveries
 ALTER TABLE deliveries
 ADD CONSTRAINT pk_deliveries
 PRIMARY KEY (delivery_id);
 
--- 4. Customers
 ALTER TABLE customers
 ADD CONSTRAINT pk_customers
 PRIMARY KEY (customer_id);
 
--- 5. Products
 ALTER TABLE products
 ADD CONSTRAINT pk_products
 PRIMARY KEY (product_id);
 
--- 6. Stores
 ALTER TABLE stores_clean
 ADD CONSTRAINT pk_stores_clean
 PRIMARY KEY (store_id);
 
--- 7. Riders
 ALTER TABLE riders
 ADD CONSTRAINT pk_riders
 PRIMARY KEY (rider_id);
 
--- 8. Promotions
 ALTER TABLE promotions
 ADD CONSTRAINT pk_promotions
 PRIMARY KEY (promo_id);
 
--- 9. Promotion Exposures
 ALTER TABLE promotion_exposures
 ADD CONSTRAINT pk_promotion_exposures
 PRIMARY KEY (exposure_id);
 
--- 10. External Factors (Composite Primary Key)
 ALTER TABLE external_factors
 ADD CONSTRAINT pk_external_factors
 PRIMARY KEY (date, zone);
 
-
+-- List the primary-key constraints across all tables.
 SELECT
     table_name,
     constraint_name,
@@ -570,76 +638,70 @@ SELECT
 FROM information_schema.table_constraints
 WHERE table_schema = 'public'
   AND constraint_type = 'PRIMARY KEY'
-  ORDER BY table_name;
+ORDER BY table_name;
 
 
--- 1. Orders → Customers
+-- ============================================================================
+-- SECTION 9 — DEFINE AND VERIFY FOREIGN KEYS
+-- Enforce the relationships already checked for missing parent records.
+-- ============================================================================
+-- Add the eleven verified foreign-key relationships.
 ALTER TABLE orders_clean
 ADD CONSTRAINT fk_orders_customers
 FOREIGN KEY (customer_id)
 REFERENCES customers(customer_id);
 
--- 2. Orders → Stores
 ALTER TABLE orders_clean
 ADD CONSTRAINT fk_orders_stores
 FOREIGN KEY (store_id)
 REFERENCES stores_clean(store_id);
 
--- 3. Orders → Promotions
 ALTER TABLE orders_clean
 ADD CONSTRAINT fk_orders_promotions
 FOREIGN KEY (promo_id)
 REFERENCES promotions(promo_id);
 
--- 4. Order Items → Orders
 ALTER TABLE order_items_clean
 ADD CONSTRAINT fk_order_items_orders
 FOREIGN KEY (order_id)
 REFERENCES orders_clean(order_id);
 
--- 5. Order Items → Products
 ALTER TABLE order_items_clean
 ADD CONSTRAINT fk_order_items_products
 FOREIGN KEY (product_id)
 REFERENCES products(product_id);
 
--- 6. Deliveries → Orders
 ALTER TABLE deliveries
 ADD CONSTRAINT fk_deliveries_orders
 FOREIGN KEY (order_id)
 REFERENCES orders_clean(order_id);
 
--- 7. Deliveries → Riders
 ALTER TABLE deliveries
 ADD CONSTRAINT fk_deliveries_riders
 FOREIGN KEY (rider_id)
 REFERENCES riders(rider_id);
 
--- 8. Inventory → Stores
 ALTER TABLE inventory_clean
 ADD CONSTRAINT fk_inventory_stores
 FOREIGN KEY (store_id)
 REFERENCES stores_clean(store_id);
 
--- 9. Inventory → Products
 ALTER TABLE inventory_clean
 ADD CONSTRAINT fk_inventory_products
 FOREIGN KEY (product_id)
 REFERENCES products(product_id);
 
--- 10. Promotion Exposures → Promotions
 ALTER TABLE promotion_exposures
 ADD CONSTRAINT fk_exposures_promotions
 FOREIGN KEY (promo_id)
 REFERENCES promotions(promo_id);
 
--- 11. Promotion Exposures → Customers
 ALTER TABLE promotion_exposures
 ADD CONSTRAINT fk_exposures_customers
 FOREIGN KEY (customer_id)
 REFERENCES customers(customer_id);
 
-
+-- List all foreign-key constraints in the public schema.
 SELECT
     table_name,
     constraint_name,
@@ -647,4 +709,4 @@ SELECT
 FROM information_schema.table_constraints
 WHERE table_schema = 'public'
   AND constraint_type = 'FOREIGN KEY'
-  ORDER BY table_name;
+ORDER BY table_name;
