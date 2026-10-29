@@ -1,0 +1,58 @@
+table 'public vw_product_stockouts'
+	lineageTag: 2b15ce52-a530-4eb1-a669-44c8b6711857
+
+	column product_id
+		dataType: string
+		lineageTag: 349c74e2-91d0-45c0-9e71-28cc47f2187f
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		lineageTag: 6ed17e3a-7ba2-4750-a1b7-2c8771c59bf8
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_store_days
+		dataType: int64
+		formatString: 0
+		lineageTag: ba596ebf-751e-469f-8867-bbb1f8735b80
+		summarizeBy: sum
+		sourceColumn: total_store_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column stockout_store_days
+		dataType: int64
+		formatString: 0
+		lineageTag: 115981ff-7400-4de2-9db0-7266bb122a7e
+		summarizeBy: sum
+		sourceColumn: stockout_store_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column stockout_rate_pct
+		dataType: double
+		lineageTag: 413801b1-d847-4561-a241-f32b365bed78
+		summarizeBy: sum
+		sourceColumn: stockout_rate_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public vw_product_stockouts' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				    public_vw_product_stockouts = Source{[Schema="public",Item="vw_product_stockouts"]}[Data]
+				in
+				    public_vw_product_stockouts
+
+	annotation PBI_ResultType = Exception
+

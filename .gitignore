@@ -13,3 +13,6 @@ __pycache__/
 *.zip
 *.dump
 *.backup
+# Power BI local settings and cache
+**/.pbi/localSettings.json
+**/.pbi/cache.abf

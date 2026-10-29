@@ -1,0 +1,126 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 376,
+            "y": 0
+          },
+          "nodeIndex": "public orders_clean",
+          "nodeLineageTag": "847e3933-f11a-4ba7-8adf-a159f428eda1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 10,
+            "y": 0
+          },
+          "nodeIndex": "public stores_clean",
+          "nodeLineageTag": "79059876-3f77-4cb7-93ed-6983b993c3de",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 735,
+            "y": 0
+          },
+          "nodeIndex": "Calendar",
+          "nodeLineageTag": "a3c92afa-3514-43e9-b85a-b104eb06130d",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1009,
+            "y": 50
+          },
+          "nodeIndex": "public vw_product_stockouts",
+          "nodeLineageTag": "2b15ce52-a530-4eb1-a669-44c8b6711857",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1283,
+            "y": 62
+          },
+          "nodeIndex": "public vw_product_wastage",
+          "nodeLineageTag": "300c18ea-c179-4f9e-b8ee-471226ab5310",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1557,
+            "y": 62
+          },
+          "nodeIndex": "public vw_delivery_traffic_lateness",
+          "nodeLineageTag": "dd9f70a2-3e66-4661-8687-54af7407bd19",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1831,
+            "y": 50
+          },
+          "nodeIndex": "public vw_hourly_rider_requirements",
+          "nodeLineageTag": "8ae27bd3-4259-4b1e-8e07-fd5800568774",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2105,
+            "y": 38
+          },
+          "nodeIndex": "public vw_promotion_performance",
+          "nodeLineageTag": "5731f7f7-d221-43ec-bf45-7a9fa79ca2b6",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

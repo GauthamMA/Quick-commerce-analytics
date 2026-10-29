@@ -1,0 +1,68 @@
+table 'public vw_promotion_performance'
+	lineageTag: 5731f7f7-d221-43ec-bf45-7a9fa79ca2b6
+
+	column promo_id
+		dataType: string
+		lineageTag: b297ae95-22a4-490b-a767-280da0b4e386
+		summarizeBy: none
+		sourceColumn: promo_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column campaign_type
+		dataType: string
+		lineageTag: 89bbad93-cd3e-4b42-bd95-d8d606cea6ea
+		summarizeBy: none
+		sourceColumn: campaign_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount_type
+		dataType: string
+		lineageTag: dab7d210-012a-4122-872f-2a16bb6bb78e
+		summarizeBy: none
+		sourceColumn: discount_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount_value
+		dataType: double
+		lineageTag: 7f4dada8-bf30-47e1-b816-d1f7387d8575
+		summarizeBy: sum
+		sourceColumn: discount_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column conversion_uplift_pp
+		dataType: double
+		lineageTag: 47c86c62-2ae6-440e-a147-b30927c1e695
+		summarizeBy: sum
+		sourceColumn: conversion_uplift_pp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gp_uplift_per_customer_inr
+		dataType: double
+		lineageTag: f173425c-f1f5-4656-9fcd-f2d7611f638f
+		summarizeBy: sum
+		sourceColumn: gp_uplift_per_customer_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public vw_promotion_performance' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				    public_vw_promotion_performance = Source{[Schema="public",Item="vw_promotion_performance"]}[Data]
+				in
+				    public_vw_promotion_performance
+
+	annotation PBI_ResultType = Exception
+

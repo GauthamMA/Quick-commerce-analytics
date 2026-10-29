@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "quick_commerce_report"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d23b7c3a-7cbf-4634-b3d0-2ba6f6acda30"
+  }
+}

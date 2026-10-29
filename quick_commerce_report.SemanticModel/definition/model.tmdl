@@ -1,0 +1,30 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-GB
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["public orders_clean","public stores_clean","public vw_product_stockouts","public vw_product_wastage","public vw_delivery_traffic_lateness","public vw_hourly_rider_requirements","public vw_promotion_performance"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table 'public orders_clean'
+ref table DateTableTemplate_1c0c63a8-1543-492c-bf67-b0b81afcb5de
+ref table LocalDateTable_ec31bd4b-5b32-40ed-acf7-235ed2303c7b
+ref table 'public stores_clean'
+ref table LocalDateTable_9130fc33-dcb1-403e-86bb-0fe847bf24a1
+ref table Calendar
+ref table LocalDateTable_c4852834-7b9e-41ee-a470-abb578d7be96
+ref table 'public vw_product_stockouts'
+ref table 'public vw_product_wastage'
+ref table 'public vw_delivery_traffic_lateness'
+ref table 'public vw_hourly_rider_requirements'
+ref table 'public vw_promotion_performance'
+
+ref cultureInfo en-US
+

@@ -1,0 +1,59 @@
+table 'public vw_hourly_rider_requirements'
+	lineageTag: 8ae27bd3-4259-4b1e-8e07-fd5800568774
+
+	column store_id
+		dataType: string
+		lineageTag: d1a13965-f62c-4e8e-8104-d91954ba7530
+		summarizeBy: none
+		sourceColumn: store_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_hour
+		dataType: int64
+		formatString: 0
+		lineageTag: 3922b01b-f053-4ce8-835f-a71dad619e76
+		summarizeBy: sum
+		sourceColumn: order_hour
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_deliveries
+		dataType: int64
+		formatString: 0
+		lineageTag: 74c9ffe3-432a-4824-a72a-1974c870bf89
+		summarizeBy: sum
+		sourceColumn: total_deliveries
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_daily_deliveries
+		dataType: double
+		lineageTag: 6da5bcbb-d77a-4546-a3f4-2115ba87b1df
+		summarizeBy: sum
+		sourceColumn: avg_daily_deliveries
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column estimated_riders_required
+		dataType: int64
+		formatString: 0
+		lineageTag: 0a1d4ae1-253b-4418-9533-195ca792467f
+		summarizeBy: sum
+		sourceColumn: estimated_riders_required
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'public vw_hourly_rider_requirements' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				    public_vw_hourly_rider_requirements = Source{[Schema="public",Item="vw_hourly_rider_requirements"]}[Data]
+				in
+				    public_vw_hourly_rider_requirements
+
+	annotation PBI_ResultType = Table
+

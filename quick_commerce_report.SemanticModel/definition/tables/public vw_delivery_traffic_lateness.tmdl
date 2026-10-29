@@ -1,0 +1,50 @@
+table 'public vw_delivery_traffic_lateness'
+	lineageTag: dd9f70a2-3e66-4661-8687-54af7407bd19
+
+	column traffic_level
+		dataType: string
+		lineageTag: 7c963fed-450e-43ed-8782-a119763ccd3f
+		summarizeBy: none
+		sourceColumn: traffic_level
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_deliveries
+		dataType: int64
+		formatString: 0
+		lineageTag: 35031afc-0104-4c3b-a292-9491522b7e80
+		summarizeBy: sum
+		sourceColumn: total_deliveries
+
+		annotation SummarizationSetBy = Automatic
+
+	column late_deliveries
+		dataType: int64
+		formatString: 0
+		lineageTag: 31b28649-3c71-422a-b569-fd23d81c7482
+		summarizeBy: sum
+		sourceColumn: late_deliveries
+
+		annotation SummarizationSetBy = Automatic
+
+	column late_delivery_rate_pct
+		dataType: double
+		lineageTag: 001b9787-17ba-42b3-b145-cd41ba307ce9
+		summarizeBy: sum
+		sourceColumn: late_delivery_rate_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public vw_delivery_traffic_lateness' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				    public_vw_delivery_traffic_lateness = Source{[Schema="public",Item="vw_delivery_traffic_lateness"]}[Data]
+				in
+				    public_vw_delivery_traffic_lateness
+
+	annotation PBI_ResultType = Table
+

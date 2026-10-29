@@ -1,0 +1,25 @@
+relationship 86f32a7d-2aa5-45af-877e-24b7df818fb7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'public orders_clean'.order_timestamp
+	toColumn: LocalDateTable_ec31bd4b-5b32-40ed-acf7-235ed2303c7b.Date
+
+relationship 9c97a32f-3776-42ae-be70-c7b8dcc8ee8a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'public stores_clean'.opening_date
+	toColumn: LocalDateTable_9130fc33-dcb1-403e-86bb-0fe847bf24a1.Date
+
+relationship f3cde1d0-4edb-4dc2-80cb-a23ca9820b28
+	fromColumn: 'public orders_clean'.store_id
+	toColumn: 'public stores_clean'.store_id
+
+	annotation PBI_IsFromSource = FS
+
+relationship 30327f55-1c86-48d7-a86d-8317b2051fd8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Calendar.Date
+	toColumn: LocalDateTable_c4852834-7b9e-41ee-a470-abb578d7be96.Date
+
+relationship b1530382-9d27-3454-add3-e8383c1b65ce
+	fromColumn: 'public orders_clean'.'Order Date'
+	toColumn: Calendar.Date
+

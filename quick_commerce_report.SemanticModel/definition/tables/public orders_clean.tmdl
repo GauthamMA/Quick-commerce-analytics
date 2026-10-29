@@ -1,0 +1,253 @@
+table 'public orders_clean'
+	lineageTag: 847e3933-f11a-4ba7-8adf-a159f428eda1
+
+	measure total_orders = COUNTROWS('public orders_clean')
+		formatString: 0
+		lineageTag: e02bbea7-e58f-46aa-93d3-1141533a34a1
+
+	measure 'Average Orders per Day' =
+			
+			AVERAGEX(
+			    VALUES('Calendar'[Date]),
+			    COALESCE([total_orders], 0)
+			)
+		lineageTag: 1c857fa2-538b-4312-b74a-5c227dc37168
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Measure
+		lineageTag: c53116e3-ff0d-4137-a531-52b3021a9873
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	column order_id
+		dataType: string
+		lineageTag: 81d34044-1c75-4268-bff4-4f004a876f5a
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		lineageTag: 289a605f-02fb-4a7f-9b38-56a7cb039201
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column store_id
+		dataType: string
+		lineageTag: 9d878453-9300-454a-befc-78d0cbc5ed81
+		summarizeBy: none
+		sourceColumn: store_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8640d895-511d-4623-8a3e-ccb7355b9879
+		summarizeBy: none
+		sourceColumn: order_timestamp
+
+		variation Variation
+			isDefault
+			relationship: 86f32a7d-2aa5-45af-877e-24b7df818fb7
+			defaultHierarchy: LocalDateTable_ec31bd4b-5b32-40ed-acf7-235ed2303c7b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: 87b9b59c-e644-4422-8e02-c8027d94b435
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		lineageTag: c996dd62-e1d2-4fdf-89ee-f6f3f2395b64
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column cancellation_reason
+		dataType: string
+		lineageTag: 760f7af8-c922-4897-9425-ac2a51ae0712
+		summarizeBy: none
+		sourceColumn: cancellation_reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_channel
+		dataType: string
+		lineageTag: 23206267-bb73-43a5-95e0-e6fd13a8d23c
+		summarizeBy: none
+		sourceColumn: order_channel
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_method
+		dataType: string
+		lineageTag: 46704a7a-84e6-4164-8396-1e60e03b3e47
+		summarizeBy: none
+		sourceColumn: payment_method
+
+		annotation SummarizationSetBy = Automatic
+
+	column promo_id
+		dataType: string
+		lineageTag: 21feedd4-37b7-4985-b7f3-ca274ce94666
+		summarizeBy: none
+		sourceColumn: promo_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 9bba2f4f-7dfc-4aca-8be1-79bcd43c06c3
+		summarizeBy: sum
+		sourceColumn: item_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_merchandise_value_inr
+		dataType: double
+		lineageTag: 07b87eac-bd73-4444-a0d0-3346e0c2b5c5
+		summarizeBy: sum
+		sourceColumn: gross_merchandise_value_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column discount_inr
+		dataType: double
+		lineageTag: 77321d1b-baaa-4d19-b1c4-628faa25cf73
+		summarizeBy: sum
+		sourceColumn: discount_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column delivery_fee_inr
+		dataType: double
+		lineageTag: b09a9e0d-5f69-4e0a-b46d-54c1eeff09eb
+		summarizeBy: sum
+		sourceColumn: delivery_fee_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column tax_inr
+		dataType: double
+		lineageTag: c781e966-7fda-45bb-9b91-b093f2a65f9f
+		summarizeBy: sum
+		sourceColumn: tax_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column refund_inr
+		dataType: double
+		lineageTag: df504d5d-70a3-44bf-b00b-4d8a02c97e97
+		summarizeBy: sum
+		sourceColumn: refund_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column net_revenue_inr
+		dataType: double
+		lineageTag: c8592813-5e3c-4d4f-a8e6-84cccc016188
+		summarizeBy: sum
+		sourceColumn: net_revenue_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column cost_of_goods_inr
+		dataType: double
+		lineageTag: aa9b92e7-1f92-4be9-add0-85411a34c32d
+		summarizeBy: sum
+		sourceColumn: cost_of_goods_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gross_profit_inr
+		dataType: double
+		lineageTag: 3d537cb6-4d59-4d6f-b738-cf0c1a7c60b9
+		summarizeBy: sum
+		sourceColumn: gross_profit_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column delivery_distance_km
+		dataType: double
+		lineageTag: 7259d777-033a-4e10-800a-63e70ee5c592
+		summarizeBy: sum
+		sourceColumn: delivery_distance_km
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column promised_delivery_minutes
+		dataType: int64
+		formatString: 0
+		lineageTag: 9330451c-401c-49e2-98ee-8bc2f1d80bb0
+		summarizeBy: sum
+		sourceColumn: promised_delivery_minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_hour = IF(ISBLANK('public orders_clean'[order_timestamp]),BLANK(),HOUR('public orders_clean'[order_timestamp]))
+		formatString: 0
+		lineageTag: aa3deb3b-055f-4893-b163-1482625d8900
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Date' =
+			
+			VAR TimestampValue = 'public orders_clean'[order_timestamp]
+			RETURN
+			    IF(
+			        ISBLANK(TimestampValue),
+			        BLANK(),
+			        DATE(
+			            YEAR(TimestampValue),
+			            MONTH(TimestampValue),
+			            DAY(TimestampValue)
+			        )
+			    )
+		formatString: General Date
+		lineageTag: 47c8e7d0-2494-4ecb-85af-7f930f97f4f5
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'public orders_clean' = m
+		mode: import
+		source =
+				let
+				  Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				  #"Navigation 1" = Source{[Schema = "public", Item = "orders_clean"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

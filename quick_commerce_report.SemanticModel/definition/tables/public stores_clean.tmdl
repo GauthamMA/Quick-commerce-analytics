@@ -1,0 +1,136 @@
+table 'public stores_clean'
+	lineageTag: 79059876-3f77-4cb7-93ed-6983b993c3de
+
+	column store_id
+		dataType: string
+		lineageTag: c1b0eebe-b5fc-41a7-a300-c552318bf3d0
+		summarizeBy: none
+		sourceColumn: store_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column store_name
+		dataType: string
+		lineageTag: e55372ed-4d1a-4a12-bac5-86d99c3af2fd
+		summarizeBy: none
+		sourceColumn: store_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone
+		dataType: string
+		lineageTag: cfb2fb5c-359d-4f4b-a768-36aea7419cb8
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = Automatic
+
+	column neighborhood
+		dataType: string
+		lineageTag: 1eaa71fc-0582-41ef-a042-417d8c25edfc
+		summarizeBy: none
+		sourceColumn: neighborhood
+
+		annotation SummarizationSetBy = Automatic
+
+	column latitude
+		dataType: double
+		lineageTag: ef9a01c1-753d-428c-a52f-a3ee4f0e70af
+		summarizeBy: sum
+		sourceColumn: latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column longitude
+		dataType: double
+		lineageTag: 12e6808a-6d5a-43e2-8278-28b298df2587
+		summarizeBy: sum
+		sourceColumn: longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column opening_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: dc54dfa3-3dcf-401c-a49a-bd60b6168914
+		summarizeBy: none
+		sourceColumn: opening_date
+
+		variation Variation
+			isDefault
+			relationship: 9c97a32f-3776-42ae-be70-c7b8dcc8ee8a
+			defaultHierarchy: LocalDateTable_9130fc33-dcb1-403e-86bb-0fe847bf24a1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column area_sq_ft
+		dataType: int64
+		formatString: 0
+		lineageTag: c404bc94-5321-4da2-ad9a-5c90df62c8f9
+		summarizeBy: sum
+		sourceColumn: area_sq_ft
+
+		annotation SummarizationSetBy = Automatic
+
+	column daily_capacity_orders
+		dataType: int64
+		formatString: 0
+		lineageTag: 952f7d50-c548-4d4c-a443-76b72aec0a06
+		summarizeBy: sum
+		sourceColumn: daily_capacity_orders
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_rating
+		dataType: double
+		lineageTag: 3d8d379d-08a6-4fbe-9879-dbbd2345d560
+		summarizeBy: sum
+		sourceColumn: customer_rating
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column status
+		dataType: string
+		lineageTag: 8610a65e-d256-4761-9126-2607847c839a
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Short Store Name' =
+			
+			TRIM(
+			    SUBSTITUTE(
+			        SUBSTITUTE(
+			            'public stores_clean'[store_name],
+			            "Bengaluru ",
+			            ""
+			        ),
+			        " Dark Store",
+			        ""
+			    )
+			)
+		lineageTag: 3f8cd5d6-a1e9-43cd-a585-1fabb1bf3121
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'public stores_clean' = m
+		mode: import
+		source =
+				let
+				  Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				  #"Navigation 1" = Source{[Schema = "public", Item = "stores_clean"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,48 @@
+table 'public vw_product_wastage'
+	lineageTag: 300c18ea-c179-4f9e-b8ee-471226ab5310
+
+	column product_id
+		dataType: string
+		lineageTag: aa96f7b5-2e75-4a76-af1a-f0b7bec434de
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		lineageTag: 9682dc41-cccf-4dac-92fd-a807992e70b8
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: bc0f92b0-ea85-4d3c-8535-8821689a1584
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_wastage_cost_inr
+		dataType: double
+		lineageTag: 6ff822c3-0f81-4f59-91a3-dac9b9d4c52c
+		summarizeBy: sum
+		sourceColumn: total_wastage_cost_inr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'public vw_product_wastage' = m
+		mode: import
+		source =
+				let
+				    Source = PostgreSQL.Database("localhost:5747", "quick_commerce"),
+				    public_vw_product_wastage = Source{[Schema="public",Item="vw_product_wastage"]}[Data]
+				in
+				    public_vw_product_wastage
+
+	annotation PBI_ResultType = Exception
+

@@ -1,0 +1,47 @@
+table Calendar
+	lineageTag: a3c92afa-3514-43e9-b85a-b104eb06130d
+
+	column Date
+		formatString: General Date
+		lineageTag: e65a0b6d-c277-4a55-a0a6-2b3bf0ac3ccf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: 30327f55-1c86-48d7-a86d-8317b2051fd8
+			defaultHierarchy: LocalDateTable_c4852834-7b9e-41ee-a470-abb578d7be96.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Name'
+		lineageTag: 26951e05-087c-4c95-a7dd-b76de94f4069
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Day Name]
+		sortByColumn: 'Day Number'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Number'
+		formatString: 0
+		lineageTag: 35711d13-42df-41ec-beb0-da0fe118fd86
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Day Number]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calendar = calculated
+		mode: import
+		source =
+				
+				ADDCOLUMNS(
+				    CALENDAR(DATE(2025, 1, 1), DATE(2025, 12, 31)),
+				    "Day Name", FORMAT([Date], "dddd"),
+				    "Day Number", WEEKDAY([Date], 2)
+				)
+
+	annotation PBI_Id = c44dbaa9beab486b8880375990db5e8f
+
